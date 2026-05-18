@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Đăng nhập{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-4">
+        <div class="card shadow-lg border-0">
+            <div class="card-body p-4">
+                <h2 class="card-title text-center mb-4">
+                    <i class="bi bi-shield-lock-fill"></i> Admin Panel
+                </h2>
+                <p class="text-center text-muted mb-4">Đăng nhập để quản trị hệ thống</p>
+
+                {% if error %}
+                <div class="alert alert-danger d-flex align-items-center" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <div>{{ error }}</div>
+                </div>
+                {% endif %}
+
+                {% if locked %}
+                <div class="alert alert-warning d-flex align-items-center" role="alert">
+                    <i class="bi bi-lock-fill me-2"></i>
+                    <div>Tài khoản tạm thời bị khóa do quá nhiều lần thử sai.</div>
+                </div>
+                {% endif %}
+
+                <form method="post" action="/login" {% if locked %}class="opacity-50"{% endif %}>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">
+                            <i class="bi bi-person"></i> Tên đăng nhập
+                        </label>
+                        <input type="text" class="form-control form-control-lg" name="username"
+                               placeholder="Nhập tên đăng nhập" required autofocus
+                               {% if locked %}disabled{% endif %}>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">
+                            <i class="bi bi-key"></i> Mật khẩu
+                        </label>
+                        <input type="password" class="form-control form-control-lg" name="password"
+                               placeholder="Nhập mật khẩu" required
+                               {% if locked %}disabled{% endif %}>
+                    </div>
+
+                    {% if totp_enabled %}
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">
+                            <i class="bi bi-phone"></i> Mã xác thực 2FA
+                        </label>
+                        <input type="text" class="form-control form-control-lg text-center" name="totp_code"
+                               placeholder="Nhập 6 số từ Google Authenticator"
+                               maxlength="6" pattern="[0-9]{6}" inputmode="numeric" autocomplete="one-time-code"
+                               {% if locked %}disabled{% endif %}>
+                    </div>
+                    {% endif %}
+
+                    <button type="submit" class="btn btn-primary btn-lg w-100 mt-2"
+                            {% if locked %}disabled{% endif %}>
+                        <i class="bi bi-box-arrow-in-right"></i> Đăng nhập
+                    </button>
+                </form>
+
+                {% if totp_enabled %}
+                <div class="text-center mt-3">
+                    <small class="text-muted">
+                        <i class="bi bi-shield-check"></i> Bảo vệ bởi xác thực 2 bước (TOTP)
+                    </small>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="text-center mt-3">
+            <small class="text-muted">
+                <i class="bi bi-lock"></i> Kết nối được bảo mật &bull; Session hết hạn sau 2 giờ
+            </small>
+        </div>
+    </div>
+</div>
+{% endblock %}

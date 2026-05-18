@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seller API Documentation</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;line-height:1.6;color:#333;background:#fff;padding:0}
+.container{max-width:900px;margin:0 auto;padding:20px 30px 60px}
+/* Header */
+.doc-header{background:linear-gradient(135deg,#1e3a5f 0%,#2d5a87 100%);color:#fff;padding:40px 30px;text-align:center;margin-bottom:30px}
+.doc-header h1{font-size:2rem;margin-bottom:6px}
+.doc-header p{opacity:.85;font-size:.95rem}
+/* Sections */
+h2{font-size:1.4rem;color:#1e3a5f;border-bottom:2px solid #e9ecef;padding-bottom:8px;margin:2rem 0 1rem}
+h3{font-size:1.15rem;color:#333;margin:1.5rem 0 .75rem}
+h5,h6{margin:1rem 0 .5rem}
+p{margin-bottom:.75rem}
+a{color:#2d5a87}
+/* Tables */
+table{width:100%;border-collapse:collapse;margin-bottom:1rem;font-size:.9rem}
+th,td{border:1px solid #dee2e6;padding:8px 12px;text-align:left}
+th{background:#f8f9fa;font-weight:600}
+/* Code */
+code{background:#f0f0f0;padding:2px 6px;border-radius:3px;font-size:.85rem;font-family:'Fira Code',Consolas,'Courier New',monospace}
+.code-block{background:#1e1e2e;color:#cdd6f4;border-radius:8px;padding:16px 20px;font-size:.83rem;overflow-x:auto;margin-bottom:1rem;position:relative;white-space:pre-wrap;word-wrap:break-word}
+.code-block code{background:none;color:#cdd6f4;padding:0;font-size:inherit}
+/* Badges */
+.badge{display:inline-block;padding:3px 10px;border-radius:4px;font-size:.75rem;font-weight:700;font-family:monospace;letter-spacing:.5px}
+.badge-get{background:#d4edda;color:#155724}
+.badge-post{background:#cce5ff;color:#004085}
+.badge-err{background:#f8d7da;color:#842029;font-size:.8rem;padding:2px 8px}
+.badge-warn{background:#fff3cd;color:#664d03;font-size:.8rem;padding:2px 8px}
+.badge-info{background:#cff4fc;color:#055160;font-size:.8rem;padding:2px 8px}
+.badge-dark{background:#343a40;color:#fff;font-size:.8rem;padding:2px 8px}
+.badge-ok{background:#d1e7dd;color:#0a3622;font-size:.8rem;padding:2px 8px}
+/* Alert boxes */
+.alert{border-radius:8px;padding:12px 16px;margin-bottom:1rem;font-size:.9rem}
+.alert-info{background:linear-gradient(135deg,#e8f4fd 0%,#d1ecf1 100%);border-left:4px solid #0dcaf0}
+.alert-warning{background:#fff3cd;border-left:4px solid #ffc107}
+/* Cards */
+.endpoint-card{border:1px solid #e9ecef;border-radius:10px;margin-bottom:1.5rem;overflow:hidden}
+.endpoint-card .card-header{background:#f8f9fa;padding:12px 20px;border-bottom:1px solid #e9ecef;display:flex;align-items:center;gap:12px}
+.endpoint-card .card-body{padding:20px}
+/* Note cards */
+.note-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:1rem}
+@media(max-width:600px){.note-grid{grid-template-columns:1fr}}
+.note-card{border:1px solid #e9ecef;border-radius:8px;padding:14px;border-left:4px solid #0d6efd}
+.note-card h6{margin-top:0;margin-bottom:6px;font-size:.9rem}
+.note-card p{margin:0;font-size:.85rem}
+.note-card.red{border-left-color:#dc3545}
+.note-card.yellow{border-left-color:#ffc107}
+.note-card.blue{border-left-color:#0d6efd}
+.note-card.green{border-left-color:#198754}
+.note-card.purple{border-left-color:#6f42c1}
+.note-card.teal{border-left-color:#20c997}
+/* Responsive */
+@media(max-width:600px){
+  .container{padding:10px 15px 40px}
+  .doc-header{padding:24px 16px}
+  .doc-header h1{font-size:1.5rem}
+  table{font-size:.8rem}
+  th,td{padding:6px 8px}
+}
+ol,ul{margin-bottom:.75rem;padding-left:1.5rem}
+li{margin-bottom:4px}
+hr{border:none;border-top:2px solid #e9ecef;margin:2rem 0}
+.text-muted{color:#6c757d}
+small{font-size:.85rem}
+</style>
+</head>
+<body>
+
+<div class="doc-header">
+    <h1>Seller API Documentation</h1>
+    <p>HMAC-SHA256 Authentication &bull; REST API &bull; JSON</p>
+</div>
+
+<div class="container">
+
+<!-- Overview -->
+<section>
+    <h2>Overview</h2>
+    <div class="alert alert-info">
+        <strong>Base URL:</strong> <code>https://your-domain.com</code><br>
+        <small class="text-muted">Thay bằng domain API thực tế được admin cung cấp.</small>
+    </div>
+    <p>Seller API cho phép bạn tích hợp mua hàng tự động thông qua REST API. Tất cả request phải được ký bằng HMAC-SHA256 với API Key và Secret được cấp bởi admin.</p>
+</section>
+
+<!-- Authentication -->
+<section>
+    <h2>Authentication - HMAC-SHA256</h2>
+    <p>Mọi request đến Seller API phải có <strong>4 headers bắt buộc</strong>. Server sẽ xác thực bằng HMAC-SHA256 signature.</p>
+
+    <h3>Required Headers</h3>
+    <table>
+        <thead><tr><th style="width:220px">Header</th><th>Type</th><th>Description</th></tr></thead>
+        <tbody>
+            <tr><td><code>X-Seller-Key</code></td><td>string</td><td>API Key được cấp bởi admin (bắt đầu bằng <code>sk_live_</code>)</td></tr>
+            <tr><td><code>X-Seller-Timestamp</code></td><td>string</td><td>Unix timestamp (giây). Server từ chối nếu chênh lệch &gt; <strong>300 giây</strong> (5 phút)</td></tr>
+            <tr><td><code>X-Seller-Nonce</code></td><td>string</td><td>Random string duy nhất cho mỗi request (chống replay attack). Khuyến nghị dùng UUID hoặc hex 16 bytes</td></tr>
+            <tr><td><code>X-Seller-Signature</code></td><td>string</td><td>HMAC-SHA256 hex digest của message, ký bằng <code>api_secret</code></td></tr>
+        </tbody>
+    </table>
+
+    <h3>Signing Steps (Tạo Signature)</h3>
+    <div class="alert alert-warning">
+        <strong>Quan trọng:</strong> Body dùng <strong>raw string</strong> nguyên bản (KHÔNG hash, KHÔNG encode). Nếu GET hoặc không có body, dùng chuỗi rỗng <code>""</code>.
+    </div>
+    <ol>
+        <li><strong>method</strong> = HTTP method viết HOA: <code>GET</code>, <code>POST</code></li>
+        <li><strong>path</strong> = đường dẫn API (VD: <code>/seller/v1/products</code>)</li>
+        <li><strong>timestamp</strong> = Unix timestamp hiện tại (giây), cùng giá trị gửi trong header</li>
+        <li><strong>nonce</strong> = random string, cùng giá trị gửi trong header</li>
+        <li><strong>body</strong> = raw request body (JSON string cho POST, chuỗi rỗng cho GET)</li>
+        <li>Nối <strong>5 thành phần</strong> bằng ký tự xuống dòng <code>\n</code>:</li>
+    </ol>
+    <div class="code-block"><code>message = method + "\n" + path + "\n" + timestamp + "\n" + nonce + "\n" + body</code></div>
+
+    <p><strong>Ví dụ cụ thể</strong> (GET /seller/v1/products):</p>
+    <div class="code-block"><code>GET
+/seller/v1/products
+1712345678
+a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4
+</code></div>
+    <p class="text-muted"><small>Dòng cuối là body rỗng (chuỗi rỗng). Tổng cộng 5 dòng ngăn cách bằng <code>\n</code>.</small></p>
+
+    <p><strong>Ví dụ cụ thể</strong> (POST /seller/v1/checkout):</p>
+    <div class="code-block"><code>POST
+/seller/v1/checkout
+1712345678
+a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4
+{"product_id":1,"qty":2,"idempotency_key":"550e8400-e29b-41d4-a716-446655440000"}</code></div>
+
+    <p>Sau đó ký bằng HMAC-SHA256:</p>
+    <div class="code-block"><code>signature = HMAC-SHA256(api_secret, message).hexdigest()</code></div>
+</section>
+
+<!-- Endpoints -->
+<section>
+    <h2>API Endpoints</h2>
+    <table>
+        <thead><tr><th>Method</th><th>Endpoint</th><th>Description</th></tr></thead>
+        <tbody>
+            <tr><td><span class="badge badge-get">GET</span></td><td><code>/seller/v1/products</code></td><td>Danh sách sản phẩm</td></tr>
+            <tr><td><span class="badge badge-get">GET</span></td><td><code>/seller/v1/products/{product_id}</code></td><td>Chi tiết 1 sản phẩm</td></tr>
+            <tr><td><span class="badge badge-post">POST</span></td><td><code>/seller/v1/checkout</code></td><td>Đặt mua sản phẩm</td></tr>
+            <tr><td><span class="badge badge-get">GET</span></td><td><code>/seller/v1/balance</code></td><td>Xem số dư tài khoản</td></tr>
+            <tr><td><span class="badge badge-get">GET</span></td><td><code>/seller/v1/orders</code></td><td>Lịch sử đơn hàng</td></tr>
+        </tbody>
+    </table>
+
+    <!-- EP 1: List Products -->
+    <div class="endpoint-card">
+        <div class="card-header"><span class="badge badge-get">GET</span> <code>/seller/v1/products</code></div>
+        <div class="card-body">
+            <p>Trả về danh sách tất cả sản phẩm đang active.</p>
+            <h6>Request</h6>
+            <p class="text-muted">Không có request body. Chỉ cần gửi 4 auth headers.</p>
+            <h6>Response <span class="badge badge-ok">200 OK</span></h6>
+            <div class="code-block"><code>{
+  "products": [
+    {
+      "product_id": 1,
+      "code": "STEAM_50",
+      "name": "Steam Wallet $50",
+      "price": 45.00,
+      "stock": 150,
+      "is_active": true
+    }
+  ]
+}</code></div>
+            <h6>Response Fields</h6>
+            <table>
+                <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+                <tbody>
+                    <tr><td><code>products[].product_id</code></td><td>int</td><td>ID sản phẩm</td></tr>
+                    <tr><td><code>products[].code</code></td><td>string</td><td>Mã sản phẩm</td></tr>
+                    <tr><td><code>products[].name</code></td><td>string</td><td>Tên sản phẩm</td></tr>
+                    <tr><td><code>products[].price</code></td><td>float</td><td>Giá mỗi đơn vị (USD)</td></tr>
+                    <tr><td><code>products[].stock</code></td><td>int</td><td>Số lượng tồn kho</td></tr>
+                    <tr><td><code>products[].is_active</code></td><td>bool</td><td>Trạng thái hoạt động</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- EP 2: Product Detail -->
+    <div class="endpoint-card">
+        <div class="card-header"><span class="badge badge-get">GET</span> <code>/seller/v1/products/{product_id}</code></div>
+        <div class="card-body">
+            <p>Trả về chi tiết 1 sản phẩm theo ID.</p>
+            <h6>Path Parameters</h6>
+            <table>
+                <thead><tr><th>Param</th><th>Type</th><th>Description</th></tr></thead>
+                <tbody><tr><td><code>product_id</code></td><td>int</td><td>ID sản phẩm cần xem</td></tr></tbody>
+            </table>
+            <h6>Response <span class="badge badge-ok">200 OK</span></h6>
+            <div class="code-block"><code>{
+  "product_id": 1,
+  "code": "STEAM_50",
+  "name": "Steam Wallet $50",
+  "description": "Steam Wallet Code trị giá $50 USD",
+  "price": 45.00,
+  "stock": 150,
+  "is_active": true
+}</code></div>
+            <h6>Error</h6>
+            <p><code>404</code> &mdash; <code>PRODUCT_NOT_FOUND</code> nếu product_id không tồn tại.</p>
+        </div>
+    </div>
+
+    <!-- EP 3: Checkout -->
+    <div class="endpoint-card">
+        <div class="card-header"><span class="badge badge-post">POST</span> <code>/seller/v1/checkout</code></div>
+        <div class="card-body">
+            <p>Đặt mua sản phẩm. Số tiền sẽ bị trừ từ balance của seller. Trả về thông tin đơn hàng và <code>delivery_payload</code> (key/code sản phẩm).</p>
+            <div class="alert alert-warning">
+                <strong>Lưu ý:</strong> Field tên là <code>qty</code> (KHÔNG phải <code>quantity</code>). Và <code>idempotency_key</code> là BẮT BUỘC, phải unique mỗi lần mua.
+            </div>
+            <h6>Request Body (JSON)</h6>
+            <table>
+                <thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+                <tbody>
+                    <tr><td><code>product_id</code></td><td>int</td><td>Yes</td><td>ID sản phẩm cần mua</td></tr>
+                    <tr><td><code>qty</code></td><td>int</td><td>Yes</td><td>Số lượng mua (1 - 10000)</td></tr>
+                    <tr><td><code>idempotency_key</code></td><td>string</td><td>Yes</td><td>Unique key cho mỗi lần mua (8-128 ký tự). Dùng UUID</td></tr>
+                </tbody>
+            </table>
+            <h6>Request Example</h6>
+            <div class="code-block"><code>{
+  "product_id": 1,
+  "qty": 2,
+  "idempotency_key": "550e8400-e29b-41d4-a716-446655440000"
+}</code></div>
+            <h6>Response <span class="badge badge-ok">200 OK</span></h6>
+            <div class="code-block"><code>{
+  "order_id": "a3f1b2c4-5678-9def-ghij-klmnopqrstuv",
+  "order_code": "ORD-20240406-001234",
+  "product_name": "Steam Wallet $50",
+  "qty": 2,
+  "unit_price": 45.00,
+  "total": 90.00,
+  "currency": "USD",
+  "delivery_payload": "STEAM-XXXX-YYYY-ZZZZ\nSTEAM-AAAA-BBBB-CCCC",
+  "status": "completed"
+}</code></div>
+            <h6>Response Fields</h6>
+            <table>
+                <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+                <tbody>
+                    <tr><td><code>order_id</code></td><td>string</td><td>ID đơn hàng (UUID)</td></tr>
+                    <tr><td><code>order_code</code></td><td>string</td><td>Mã đơn hàng dễ đọc</td></tr>
+                    <tr><td><code>product_name</code></td><td>string</td><td>Tên sản phẩm đã mua</td></tr>
+                    <tr><td><code>qty</code></td><td>int</td><td>Số lượng đã mua</td></tr>
+                    <tr><td><code>unit_price</code></td><td>float</td><td>Đơn giá (USD)</td></tr>
+                    <tr><td><code>total</code></td><td>float</td><td>Tổng tiền (USD)</td></tr>
+                    <tr><td><code>currency</code></td><td>string</td><td>Loại tiền (mặc định "USD")</td></tr>
+                    <tr><td><code>delivery_payload</code></td><td>string</td><td>Key/code sản phẩm được giao. Nhiều key ngăn cách bằng <code>\n</code></td></tr>
+                    <tr><td><code>status</code></td><td>string</td><td>Trạng thái đơn hàng</td></tr>
+                </tbody>
+            </table>
+            <h6>Errors</h6>
+            <table>
+                <thead><tr><th>HTTP</th><th>Detail</th><th>Description</th></tr></thead>
+                <tbody>
+                    <tr><td>404</td><td><code>PRODUCT_NOT_FOUND</code></td><td>Sản phẩm không tồn tại</td></tr>
+                    <tr><td>400</td><td><code>INSUFFICIENT_STOCK</code></td><td>Tồn kho không đủ</td></tr>
+                    <tr><td>400</td><td><code>INSUFFICIENT_BALANCE</code></td><td>Số dư không đủ để thanh toán</td></tr>
+                    <tr><td>500</td><td><code>CHECKOUT_FAILED</code></td><td>Lỗi hệ thống, thử lại sau</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- EP 4: Balance -->
+    <div class="endpoint-card">
+        <div class="card-header"><span class="badge badge-get">GET</span> <code>/seller/v1/balance</code></div>
+        <div class="card-body">
+            <p>Xem số dư tài khoản hiện tại của seller.</p>
+            <h6>Request</h6>
+            <p class="text-muted">Không có request body. Chỉ cần gửi 4 auth headers.</p>
+            <h6>Response <span class="badge badge-ok">200 OK</span></h6>
+            <div class="code-block"><code>{
+  "user_id": 42,
+  "balance": 1250.75,
+  "currency": "USD"
+}</code></div>
+        </div>
+    </div>
+
+    <!-- EP 5: Orders -->
+    <div class="endpoint-card">
+        <div class="card-header"><span class="badge badge-get">GET</span> <code>/seller/v1/orders</code></div>
+        <div class="card-body">
+            <p>Xem lịch sử đơn hàng của seller, có phân trang.</p>
+            <h6>Query Parameters</h6>
+            <table>
+                <thead><tr><th>Param</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+                <tbody>
+                    <tr><td><code>page</code></td><td>int</td><td>1</td><td>Trang hiện tại (>= 1)</td></tr>
+                    <tr><td><code>limit</code></td><td>int</td><td>20</td><td>Số đơn mỗi trang (1-100)</td></tr>
+                </tbody>
+            </table>
+            <h6>Response <span class="badge badge-ok">200 OK</span></h6>
+            <div class="code-block"><code>{
+  "orders": [
+    {
+      "order_id": "a3f1b2c4-...",
+      "order_code": "ORD-20240406-001234",
+      "product_name": "Steam Wallet $50",
+      "qty": 2,
+      "total": 90.00,
+      "currency": "USD",
+      "status": "completed",
+      "created_at": "2024-04-06T10:30:00"
+    }
+  ],
+  "total": 156,
+  "page": 1,
+  "limit": 20
+}</code></div>
+            <h6>Response Fields</h6>
+            <table>
+                <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+                <tbody>
+                    <tr><td><code>orders</code></td><td>array</td><td>Danh sách đơn hàng</td></tr>
+                    <tr><td><code>total</code></td><td>int</td><td>Tổng số đơn hàng</td></tr>
+                    <tr><td><code>page</code></td><td>int</td><td>Trang hiện tại</td></tr>
+                    <tr><td><code>limit</code></td><td>int</td><td>Số đơn mỗi trang</td></tr>
+                </tbody>
+            </table>
+            <p class="text-muted"><small>Lưu ý: path cho orders có query string là <code>/seller/v1/orders?page=1&amp;limit=20</code>. Khi tạo signature, <code>path</code> chỉ là <code>/seller/v1/orders</code> (KHÔNG bao gồm query string).</small></p>
+        </div>
+    </div>
+</section>
+
+<!-- Error Codes -->
+<section>
+    <h2>Error Codes</h2>
+    <p>Tất cả lỗi trả về format: <code>{"detail": "ERROR_CODE"}</code></p>
+    <table>
+        <thead><tr><th>HTTP Code</th><th>Error Detail</th><th>Description</th></tr></thead>
+        <tbody>
+            <tr><td><span class="badge badge-err">401</span></td><td><code>MISSING_AUTH_HEADERS</code></td><td>Thiếu 1 hoặc nhiều auth headers bắt buộc</td></tr>
+            <tr><td><span class="badge badge-err">401</span></td><td><code>INVALID_TIMESTAMP</code></td><td>Timestamp không phải là số hợp lệ</td></tr>
+            <tr><td><span class="badge badge-err">401</span></td><td><code>TIMESTAMP_EXPIRED</code></td><td>Timestamp chênh lệch quá 300 giây so với server</td></tr>
+            <tr><td><span class="badge badge-err">401</span></td><td><code>INVALID_API_KEY</code></td><td>API key không tồn tại hoặc đã bị vô hiệu hóa</td></tr>
+            <tr><td><span class="badge badge-err">401</span></td><td><code>INVALID_SIGNATURE</code></td><td>Signature không khớp. Kiểm tra lại message format và api_secret</td></tr>
+            <tr><td><span class="badge badge-err">401</span></td><td><code>USER_NOT_FOUND</code></td><td>User liên kết với API key không tồn tại</td></tr>
+            <tr><td><span class="badge badge-warn">403</span></td><td><code>LOCKED_OUT</code></td><td>IP bị chặn bởi firewall (quá nhiều request thất bại)</td></tr>
+            <tr><td><span class="badge badge-warn">404</span></td><td><code>PRODUCT_NOT_FOUND</code></td><td>Sản phẩm không tồn tại</td></tr>
+            <tr><td><span class="badge badge-info">400</span></td><td><code>INSUFFICIENT_STOCK</code></td><td>Tồn kho không đủ cho số lượng yêu cầu</td></tr>
+            <tr><td><span class="badge badge-info">400</span></td><td><code>INSUFFICIENT_BALANCE</code></td><td>Số dư tài khoản không đủ để thanh toán</td></tr>
+            <tr><td><span class="badge badge-dark">500</span></td><td><code>CHECKOUT_FAILED</code></td><td>Lỗi hệ thống khi xử lý checkout</td></tr>
+        </tbody>
+    </table>
+</section>
+
+<!-- Python Example -->
+<section>
+    <h2>Code Example - Python</h2>
+    <div class="code-block"><code>import hmac
+import hashlib
+import time
+import json
+import uuid
+import secrets
+import requests
+
+# ── Config ──────────────────────────────────────────
+API_BASE    = "https://your-domain.com"
+API_KEY     = "sk_live_xxxxxxxxxxxxxxxxxxxx"
+API_SECRET  = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+
+
+def make_request(method: str, path: str, data: dict = None):
+    """Gửi request có HMAC-SHA256 signature."""
+    timestamp = str(int(time.time()))
+    nonce = secrets.token_hex(16)
+
+    # Body: raw JSON string (KHÔNG hash). Rỗng nếu GET.
+    body = ""
+    if data is not None:
+        body = json.dumps(data, separators=(",", ":"))
+
+    # Tạo message: 5 thành phần ngăn cách bằng \n
+    message = f"{method.upper()}\n{path}\n{timestamp}\n{nonce}\n{body}"
+
+    # Ký bằng HMAC-SHA256
+    signature = hmac.new(
+        API_SECRET.encode("utf-8"),
+        message.encode("utf-8"),
+        hashlib.sha256,
+    ).hexdigest()
+
+    headers = {
+        "X-Seller-Key":       API_KEY,
+        "X-Seller-Timestamp": timestamp,
+        "X-Seller-Nonce":     nonce,
+        "X-Seller-Signature": signature,
+        "Content-Type":       "application/json",
+    }
+
+    url = API_BASE + path
+    if method.upper() == "GET":
+        resp = requests.get(url, headers=headers)
+    else:
+        resp = requests.post(url, headers=headers, data=body)
+
+    resp.raise_for_status()
+    return resp.json()
+
+
+# ── 1. Danh sách sản phẩm ──────────────────────────
+products = make_request("GET", "/seller/v1/products")
+print("Sản phẩm:", json.dumps(products, indent=2))
+
+# ── 2. Chi tiết sản phẩm ───────────────────────────
+product = make_request("GET", "/seller/v1/products/1")
+print("Chi tiết:", json.dumps(product, indent=2))
+
+# ── 3. Mua sản phẩm ────────────────────────────────
+#    idempotency_key PHẢI unique mỗi lần mua! Dùng UUID.
+order = make_request("POST", "/seller/v1/checkout", {
+    "product_id": 1,
+    "qty": 2,
+    "idempotency_key": str(uuid.uuid4()),
+})
+print("Đơn hàng:", json.dumps(order, indent=2))
+print("Delivery keys:", order.get("delivery_payload"))
+
+# ── 4. Xem số dư ───────────────────────────────────
+balance = make_request("GET", "/seller/v1/balance")
+print("Số dư:", balance)
+
+# ── 5. Lịch sử đơn hàng ────────────────────────────
+orders = make_request("GET", "/seller/v1/orders")
+print("Lịch sử:", json.dumps(orders, indent=2))</code></div>
+</section>
+
+<!-- cURL Examples -->
+<section>
+    <h2>Code Example - cURL (Bash)</h2>
+    <h6>GET /seller/v1/products</h6>
+    <div class="code-block"><code>#!/bin/bash
+API_KEY="sk_live_xxxxxxxxxxxxxxxxxxxx"
+API_SECRET="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+BASE_URL="https://your-domain.com"
+
+METHOD="GET"
+API_PATH="/seller/v1/products"
+TIMESTAMP=$(date +%s)
+NONCE=$(openssl rand -hex 16)
+BODY=""
+
+MESSAGE=$(printf '%s\n%s\n%s\n%s\n%s' "$METHOD" "$API_PATH" "$TIMESTAMP" "$NONCE" "$BODY")
+SIGNATURE=$(printf '%s' "$MESSAGE" | openssl dgst -sha256 -hmac "$API_SECRET" | awk '{print $2}')
+
+curl -s "${BASE_URL}${API_PATH}" \
+  -H "X-Seller-Key: ${API_KEY}" \
+  -H "X-Seller-Timestamp: ${TIMESTAMP}" \
+  -H "X-Seller-Nonce: ${NONCE}" \
+  -H "X-Seller-Signature: ${SIGNATURE}" | python3 -m json.tool</code></div>
+
+    <h6>POST /seller/v1/checkout</h6>
+    <div class="code-block"><code>#!/bin/bash
+API_KEY="sk_live_xxxxxxxxxxxxxxxxxxxx"
+API_SECRET="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+BASE_URL="https://your-domain.com"
+
+METHOD="POST"
+API_PATH="/seller/v1/checkout"
+TIMESTAMP=$(date +%s)
+NONCE=$(openssl rand -hex 16)
+# idempotency_key PHẢI unique mỗi lần! Dùng uuidgen.
+IDEM_KEY=$(uuidgen 2>/dev/null || python3 -c "import uuid; print(uuid.uuid4())")
+BODY="{\"product_id\":1,\"qty\":2,\"idempotency_key\":\"${IDEM_KEY}\"}"
+
+MESSAGE=$(printf '%s\n%s\n%s\n%s\n%s' "$METHOD" "$API_PATH" "$TIMESTAMP" "$NONCE" "$BODY")
+SIGNATURE=$(printf '%s' "$MESSAGE" | openssl dgst -sha256 -hmac "$API_SECRET" | awk '{print $2}')
+
+curl -s -X POST "${BASE_URL}${API_PATH}" \
+  -H "Content-Type: application/json" \
+  -H "X-Seller-Key: ${API_KEY}" \
+  -H "X-Seller-Timestamp: ${TIMESTAMP}" \
+  -H "X-Seller-Nonce: ${NONCE}" \
+  -H "X-Seller-Signature: ${SIGNATURE}" \
+  -d "$BODY" | python3 -m json.tool</code></div>
+</section>
+
+<!-- Node.js Example -->
+<section>
+    <h2>Code Example - Node.js</h2>
+    <div class="code-block"><code>const crypto = require("crypto");
+const { v4: uuidv4 } = require("uuid");
+
+const API_BASE   = "https://your-domain.com";
+const API_KEY    = "sk_live_xxxxxxxxxxxxxxxxxxxx";
+const API_SECRET = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
+
+async function makeRequest(method, path, data = null) {
+  const timestamp = Math.floor(Date.now() / 1000).toString();
+  const nonce = crypto.randomBytes(16).toString("hex");
+
+  // Body: raw JSON string (KHÔNG hash). Rỗng nếu GET.
+  const body = data ? JSON.stringify(data) : "";
+
+  // Tạo message: 5 thành phần ngăn cách bằng \n
+  const message = `${method.toUpperCase()}\n${path}\n${timestamp}\n${nonce}\n${body}`;
+
+  // Ký bằng HMAC-SHA256
+  const signature = crypto
+    .createHmac("sha256", API_SECRET)
+    .update(message)
+    .digest("hex");
+
+  const headers = {
+    "X-Seller-Key":       API_KEY,
+    "X-Seller-Timestamp": timestamp,
+    "X-Seller-Nonce":     nonce,
+    "X-Seller-Signature": signature,
+    "Content-Type":       "application/json",
+  };
+
+  const url = API_BASE + path;
+  const options = { method: method.toUpperCase(), headers };
+  if (method.toUpperCase() === "POST" && body) {
+    options.body = body;
+  }
+
+  const resp = await fetch(url, options);
+  if (!resp.ok) {
+    const err = await resp.json().catch(() => ({}));
+    throw new Error(`HTTP ${resp.status}: ${err.detail || resp.statusText}`);
+  }
+  return resp.json();
+}
+
+// ── Usage ───────────────────────────────────────────
+(async () => {
+  const products = await makeRequest("GET", "/seller/v1/products");
+  console.log("Sản phẩm:", JSON.stringify(products, null, 2));
+
+  const order = await makeRequest("POST", "/seller/v1/checkout", {
+    product_id: 1,
+    qty: 2,
+    idempotency_key: uuidv4(),
+  });
+  console.log("Đơn hàng:", JSON.stringify(order, null, 2));
+
+  const balance = await makeRequest("GET", "/seller/v1/balance");
+  console.log("Số dư:", balance);
+
+  const orders = await makeRequest("GET", "/seller/v1/orders?page=1&limit=20");
+  console.log("Lịch sử:", JSON.stringify(orders, null, 2));
+})();</code></div>
+</section>
+
+<!-- Important Notes -->
+<section>
+    <h2>Lưu Ý Quan Trọng</h2>
+    <div class="note-grid">
+        <div class="note-card red">
+            <h6>idempotency_key</h6>
+            <p><code>idempotency_key</code> <strong>PHẢI unique mỗi lần mua</strong>. Dùng UUID v4. Gửi lại cùng key sẽ bị từ chối để tránh mua trùng.</p>
+        </div>
+        <div class="note-card yellow">
+            <h6>Timestamp Drift</h6>
+            <p>Server từ chối request có timestamp chênh lệch &gt; <strong>300 giây</strong> (5 phút). Đảm bảo đồng hồ server của bạn được đồng bộ (NTP).</p>
+        </div>
+        <div class="note-card blue">
+            <h6>Body là Raw String</h6>
+            <p>Khi tạo signature, body là <strong>raw JSON string</strong> nguyên bản. KHÔNG hash, KHÔNG encode. Body phải <strong>giống hệt</strong> body gửi đi trong request.</p>
+        </div>
+        <div class="note-card green">
+            <h6>Field name chính xác</h6>
+            <p>Checkout body dùng <code>qty</code> (KHÔNG phải <code>quantity</code>). Sai tên field sẽ bị validation error.</p>
+        </div>
+        <div class="note-card purple">
+            <h6>Path trong Signature</h6>
+            <p>Khi ký signature, <code>path</code> là đường dẫn <strong>KHÔNG bao gồm query string</strong>. VD: <code>/seller/v1/orders</code> (không phải <code>/seller/v1/orders?page=1</code>).</p>
+        </div>
+        <div class="note-card teal">
+            <h6>Content-Type</h6>
+            <p>Luôn gửi header <code>Content-Type: application/json</code> cho POST request để server parse body đúng.</p>
+        </div>
+    </div>
+</section>
+
+<hr>
+<p class="text-muted" style="text-align:center;font-size:.85rem">Seller API Documentation &bull; Generated from Admin Panel</p>
+
+</div>
+</body>
+</html>

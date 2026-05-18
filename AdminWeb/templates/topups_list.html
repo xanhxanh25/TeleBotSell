@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}Topups{% endblock %}
+{% block content %}
+<style>
+    .topups-table { table-layout: fixed; width: 100%; font-size: 0.82rem; }
+    .topups-table th, .topups-table td { vertical-align: middle; padding: 6px 8px; word-break: break-all; }
+    .topups-table th:nth-child(1) { width: 100px; } /* Created */
+    .topups-table th:nth-child(2) { width: 130px; } /* Out order */
+    .topups-table th:nth-child(3) { width: 80px; }  /* TG ID */
+    .topups-table th:nth-child(4) { width: 95px; }  /* Username */
+    .topups-table th:nth-child(5) { width: 75px; }  /* Network */
+    .topups-table th:nth-child(6) { width: 65px; }  /* Amount */
+    .topups-table th:nth-child(7) { width: 65px; }  /* Pay */
+    .topups-table th:nth-child(8) { width: 130px; } /* Address */
+    .topups-table th:nth-child(9) { width: 130px; } /* TXID/Note */
+    .topups-table th:nth-child(10) { width: 70px; } /* Status */
+    .topups-table code { font-size: 0.78rem; word-break: break-all; }
+</style>
+<h1>Last 100 topups</h1>
+<div class="table-responsive">
+<table class="table table-striped table-sm topups-table">
+    <thead>
+    <tr>
+        <th>Created</th><th>Out order id</th><th>TG ID</th><th>Username</th><th>Network</th>
+        <th>Amount</th><th>Pay</th><th>Address / Binance ID</th><th>TXID / Note</th><th>Status</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for t in topups %}
+        {% set is_binance = t.currency and t.currency.upper().startswith('BINANCE_') %}
+        <tr>
+            <td>{{ t.created_at|vn }}</td>
+            <td><small><code>{{ t.out_order_id[-12:] }}</code></small></td>
+            <td>{{ t.telegram_id }}</td>
+            <td>
+                {% set user = users.get(t.user_id) if users else None %}
+                {% if user and user.telegram_user %}
+                    <code>@{{ user.telegram_user }}</code>
+                {% else %}
+                    <span class="text-muted">-</span>
+                {% endif %}
+            </td>
+            <td>
+                {% if is_binance %}
+                    <span class="badge bg-warning text-dark">Binance</span>
+                {% elif t.network == 'BSC' %}
+                    <span class="badge bg-warning text-dark">BSC</span>
+                {% elif t.network == 'ETH' %}
+                    <span class="badge bg-primary">ETH</span>
+                {% elif t.network == 'POLYGON' %}
+                    <span class="badge bg-purple" style="background:#8247e5">MATIC</span>
+                {% elif t.network == 'TRON' %}
+                    <span class="badge bg-danger">TRX</span>
+                {% else %}
+                    {{ t.network }}
+                {% endif %}
+            </td>
+            <td>{{ t.actual_amount }}</td>
+            <td>{{ t.amount }}</td>
+            <td>
+                {% if t.to_address %}
+                    <small><code>{{ t.to_address }}</code></small>
+                {% else %}
+                    <span class="text-muted">-</span>
+                {% endif %}
+            </td>
+            <td>
+                {% if is_binance %}
+                    {% if t.txid %}
+                        <small><code>{{ t.txid }}</code></small><br>
+                        <small class="text-success">SHOP{{ t.telegram_id }}</small>
+                    {% else %}
+                        <small class="text-muted">SHOP{{ t.telegram_id }}</small>
+                    {% endif %}
+                {% else %}
+                    {% if t.txid %}
+                        <small><code>{{ t.txid[:16] }}…</code></small>
+                    {% else %}
+                        <span class="text-muted">-</span>
+                    {% endif %}
+                {% endif %}
+            </td>
+            <td>
+                {% if t.status == 'SUCCESS' or t.status == 'PAID' %}
+                    <span class="badge bg-success">{{ t.status }}</span>
+                {% elif t.status == 'PENDING' %}
+                    <span class="badge bg-warning text-dark">{{ t.status }}</span>
+                {% elif t.status in ('FAILED', 'EXPIRED', 'CANCELED') %}
+                    <span class="badge bg-secondary">{{ t.status }}</span>
+                {% else %}
+                    <span class="badge bg-info">{{ t.status }}</span>
+                {% endif %}
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+</div>
+{% endblock %}

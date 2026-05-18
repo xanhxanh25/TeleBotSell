@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% block title %}Thống kê{% endblock %}
+{% block content %}
+<h1 class="mb-4"><i class="bi bi-bar-chart-line"></i> Thống kê</h1>
+
+<div class="row g-4">
+    <!-- TOP 10 NẠP NHIỀU NHẤT -->
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header text-white py-3" style="background: linear-gradient(135deg, #0d6efd 0%, #0056b3 100%);">
+                <h5 class="mb-0"><i class="bi bi-trophy"></i> Top 10 Người Nạp Nhiều Nhất</h5>
+            </div>
+            <div class="card-body p-0">
+                {% if top_topups %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead style="background: linear-gradient(135deg, #e8f0fe 0%, #d4e4fc 100%); color: #0d6efd;">
+                            <tr>
+                                <th class="text-center" style="width: 60px;">Hạng</th>
+                                <th>Telegram ID</th>
+                                <th>Username</th>
+                                <th class="text-end">Tổng nạp</th>
+                                <th class="text-center">Số lần</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in top_topups %}
+                            <tr {% if loop.index == 1 %}style="background-color: #fff9e6;"{% elif loop.index == 2 %}style="background-color: #f5f5f5;"{% elif loop.index == 3 %}style="background-color: #fdf0e9;"{% endif %}>
+                                <td class="text-center fw-bold">
+                                    {% if loop.index == 1 %}
+                                        <span style="font-size: 1.4rem;">🥇</span>
+                                    {% elif loop.index == 2 %}
+                                        <span style="font-size: 1.4rem;">🥈</span>
+                                    {% elif loop.index == 3 %}
+                                        <span style="font-size: 1.4rem;">🥉</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary rounded-pill">{{ loop.index }}</span>
+                                    {% endif %}
+                                </td>
+                                <td><code>{{ row.telegram_id }}</code></td>
+                                <td>{{ row.telegram_user or '—' }}</td>
+                                <td class="text-end fw-bold text-success">${{ "%.2f"|format(row.total_topup) }}</td>
+                                <td class="text-center"><span class="badge bg-primary rounded-pill">{{ row.topup_count }}</span></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                    Chưa có dữ liệu
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- TOP 10 SẢN PHẨM BÁN CHẠY -->
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header text-white py-3" style="background: linear-gradient(135deg, #fd7e14 0%, #dc3545 100%);">
+                <h5 class="mb-0"><i class="bi bi-fire"></i> Top 10 Sản Phẩm Bán Chạy</h5>
+            </div>
+            <div class="card-body p-0">
+                {% if top_products %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead style="background: linear-gradient(135deg, #fde8e0 0%, #fcd4d4 100%); color: #dc3545;">
+                            <tr>
+                                <th class="text-center" style="width: 60px;">Hạng</th>
+                                <th>Sản phẩm</th>
+                                <th class="text-end">Giá</th>
+                                <th class="text-center">Đã bán</th>
+                                <th class="text-center">Đơn hàng</th>
+                                <th class="text-end">Doanh thu</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in top_products %}
+                            <tr {% if loop.index == 1 %}style="background-color: #fff9e6;"{% elif loop.index == 2 %}style="background-color: #f5f5f5;"{% elif loop.index == 3 %}style="background-color: #fdf0e9;"{% endif %}>
+                                <td class="text-center fw-bold">
+                                    {% if loop.index == 1 %}
+                                        <span style="font-size: 1.4rem;">🥇</span>
+                                    {% elif loop.index == 2 %}
+                                        <span style="font-size: 1.4rem;">🥈</span>
+                                    {% elif loop.index == 3 %}
+                                        <span style="font-size: 1.4rem;">🥉</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary rounded-pill">{{ loop.index }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="fw-bold">{{ row.name }}</div>
+                                    <small class="text-muted">{{ row.code }}</small>
+                                </td>
+                                <td class="text-end">${{ "%.2f"|format(row.price) }}</td>
+                                <td class="text-center">
+                                    <span class="fw-bold text-danger">{{ row.total_sold }}</span>
+                                    <div class="progress mt-1" style="height: 4px;">
+                                        <div class="progress-bar bg-danger" style="width: {{ (row.total_sold / max_sold * 100)|int }}%"></div>
+                                    </div>
+                                </td>
+                                <td class="text-center"><span class="badge bg-warning text-dark rounded-pill">{{ row.order_count }}</span></td>
+                                <td class="text-end fw-bold text-success">${{ "%.2f"|format(row.total_revenue) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                    Chưa có dữ liệu
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

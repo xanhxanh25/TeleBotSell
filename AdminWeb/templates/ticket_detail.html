@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Ticket {{ ticket.id }}{% endblock %}
+{% block content %}
+<h1>Ticket #{{ ticket.id }}</h1>
+<p>
+    <b>User ID:</b> {{ user.telegram_id if user else ticket.telegram_id }}<br>
+    {% if user and user.telegram_user %}
+    <b>Telegram User:</b> <code>@{{ user.telegram_user }}</code><br>
+    {% endif %}
+    <b>Status:</b> {{ ticket.status }}<br>
+    <b>Order ID:</b> 
+    {% if ticket.order_id %}
+        {{ ticket.order_id }}{% if order %} ({{ order.order_code }}){% endif %}
+        {% if order %}
+            <a class="btn btn-sm btn-primary ms-2" href="/orders/{{ order.id }}">View Order</a>
+        {% endif %}
+    {% else %}
+        N/A
+    {% endif %}<br>
+    <b>Created:</b> {{ ticket.created_at|vn }}
+</p>
+<div class="mb-3">
+    <h5>Text</h5>
+    <pre class="bg-secondary text-light p-2">{{ ticket.text }}</pre>
+</div>
+{% if ticket.replacement_items %}
+    <div class="mb-3">
+        <h5>Replacement items (đã lưu)</h5>
+        <pre class="bg-secondary text-light p-2">{{ ticket.replacement_items }}</pre>
+    </div>
+{% endif %}
+
+<div class="row g-3">
+    <div class="col-md-6">
+        <h4>Approve & lưu hàng gửi lại</h4>
+        <form method="post" action="/tickets/{{ ticket.id }}/approve">
+            <div class="mb-2">
+                <label class="form-label">Replacement items (1 dòng = 1 item)</label>
+                <textarea class="form-control" name="replacement_items" rows="5"
+                          placeholder="acc1|pass1&#10;acc2|pass2"></textarea>
+            </div>
+            <button class="btn btn-success" type="submit">Approve</button>
+        </form>
+    </div>
+    <div class="col-md-6">
+        <h4>Từ chối</h4>
+        <form method="post" action="/tickets/{{ ticket.id }}/reject"
+              onsubmit="return confirm('Reject ticket {{ ticket.id }}?');">
+            <div class="mb-2">
+                <label class="form-label">Lý do từ chối (tùy chọn)</label>
+                <textarea class="form-control" name="reason" rows="3"
+                          placeholder="Nhập lý do từ chối..."></textarea>
+            </div>
+            <button class="btn btn-danger" type="submit">
+                <i class="bi bi-x-circle"></i> Reject
+            </button>
+        </form>
+    </div>
+</div>
+<div class="mt-4">
+    <a class="btn btn-secondary" href="/tickets">Back</a>
+</div>
+{% endblock %}
+
+

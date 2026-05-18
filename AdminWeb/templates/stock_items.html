@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block title %}Stock items{% endblock %}
+{% block content %}
+<h1>Stock items for {{ product.code }} - {{ product.name }}</h1>
+<p>Total items: <b>{{ total }}</b></p>
+
+{% if added or skipped %}
+<div class="alert alert-success alert-dismissible fade show" role="alert">
+    <h6 class="alert-heading"><i class="bi bi-check-circle"></i> Kết quả import</h6>
+    <ul class="mb-0">
+        <li>Đã thêm: <strong class="text-success">{{ added or 0 }}</strong> items</li>
+        {% if skipped %}
+        <li>Đã bỏ qua (trùng): <strong class="text-warning">{{ skipped }}</strong> items</li>
+        {% endif %}
+    </ul>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+{% endif %}
+
+{% if duplicates %}
+<div class="alert alert-warning alert-dismissible fade show" role="alert">
+    <h6 class="alert-heading"><i class="bi bi-exclamation-triangle"></i> Danh sách các dòng trùng (đã bỏ qua)</h6>
+    <div style="max-height: 300px; overflow-y: auto; margin-top: 10px;">
+        <table class="table table-sm table-bordered">
+            <thead class="table-warning">
+                <tr>
+                    <th>STT</th>
+                    <th>Mota (trùng)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for dup in duplicates %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td><code style="word-break: break-all;">{{ dup }}</code></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+{% endif %}
+
+<form method="post" action="/products/{{ product.id }}/stock/import" class="mb-4">
+    <div class="mb-2">
+        <label class="form-label">Mode</label>
+        <select class="form-select" name="mode">
+            <option value="append">Append</option>
+            <option value="replace">Replace all</option>
+        </select>
+    </div>
+    <div class="mb-2">
+        <label class="form-label">Lines (1 item / line, mỗi hàng là 1 mota)</label>
+        <textarea class="form-control" name="lines" rows="6" placeholder="mota1&#10;mota2&#10;mota3"></textarea>
+    </div>
+    <button class="btn btn-primary" type="submit">
+        <i class="bi bi-upload"></i> Import
+    </button>
+    <a class="btn btn-secondary" href="/products">
+        <i class="bi bi-arrow-left"></i> Quay lại
+    </a>
+    <a class="btn btn-success" href="/products/{{ product.id }}/stock/download">
+        <i class="bi bi-download"></i> Tải về
+    </a>
+</form>
+<form method="post" action="/products/{{ product.id }}/stock/delete-all" class="mb-4" onsubmit="return confirm('Bạn có chắc chắn muốn xóa hết tất cả dữ liệu?');">
+    <button class="btn btn-danger" type="submit">
+        <i class="bi bi-trash"></i> Xóa hết dữ liệu
+    </button>
+</form>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0">Last 100 items</h5>
+    <button type="button" class="btn btn-sm btn-danger" id="btnDeleteSelected" disabled onclick="deleteSelected()">
+        <i class="bi bi-trash"></i> Xóa các mục đã chọn
+    </button>
+</div>
+<form method="post" action="/products/{{ product.id }}/stock/delete-selected" id="deleteSelectedForm" onsubmit="return confirm('Bạn có chắc chắn muốn xóa các mục đã chọn?');">
+    <table class="table table-striped table-sm">
+        <thead>
+        <tr>
+            <th width="50">
+                <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
+            </th>
+            <th>STT</th><th>id_sanpham</th><th>mota</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for it in items %}
+            <tr>
+                <td>
+                    <input type="checkbox" class="item-checkbox" name="item_ids" value="{{ it.id }}" onchange="updateDeleteButton()">
+                </td>
+                <td>{{ loop.index }}</td>
+                <td>{{ it.id_sanpham }}</td>
+                <td>{{ it.mota }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</form>
+
+<script>
+function toggleSelectAll() {
+    const selectAll = document.getElementById('selectAll');
+    const checkboxes = document.querySelectorAll('.item-checkbox');
+    checkboxes.forEach(cb => cb.checked = selectAll.checked);
+    updateDeleteButton();
+}
+
+function updateDeleteButton() {
+    const checked = document.querySelectorAll('.item-checkbox:checked').length;
+    const btn = document.getElementById('btnDeleteSelected');
+    btn.disabled = checked === 0;
+    btn.textContent = checked > 0 ? `Xóa ${checked} mục đã chọn` : 'Xóa các mục đã chọn';
+}
+
+function deleteSelected() {
+    const checked = document.querySelectorAll('.item-checkbox:checked');
+    if (checked.length === 0) {
+        alert('Vui lòng chọn ít nhất một mục để xóa');
+        return;
+    }
+    document.getElementById('deleteSelectedForm').submit();
+}
+</script>
+{% endblock %}
+
+

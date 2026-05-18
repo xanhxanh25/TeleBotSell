@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Users{% endblock %}
+{% block content %}
+<h1>Users</h1>
+<form class="row g-2 mb-3 align-items-end" method="get">
+    <div class="col-auto">
+        <label class="form-label small mb-0">Tìm (ID, Telegram ID, @username)</label>
+        <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="VD: 123, @name, 900001">
+    </div>
+    <div class="col-auto">
+        <label class="form-label small mb-0">/ trang</label>
+        <select class="form-select" name="per_page" onchange="this.form.submit()">
+            {% for n in [10, 20, 50, 100] %}
+            <option value="{{ n }}" {% if per_page == n %}selected{% endif %}>{{ n }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <input type="hidden" name="page" value="1">
+    <div class="col-auto">
+        <button class="btn btn-primary" type="submit">Search</button>
+    </div>
+</form>
+<p class="text-muted small">Tổng: <strong>{{ total }}</strong> user — trang <strong>{{ page }}</strong> / {{ total_pages }}</p>
+<table class="table table-striped table-sm">
+    <thead>
+    <tr>
+        <th>ID</th><th>Telegram ID</th><th>Username</th><th>Balance</th><th>Status</th><th>Created</th><th></th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for u in users %}
+        <tr>
+            <td>{{ u.id }}</td>
+            <td>{{ u.telegram_id }}</td>
+            <td>
+                {% if u.telegram_user %}
+                    <code>@{{ u.telegram_user }}</code>
+                {% else %}
+                    <span class="text-muted">-</span>
+                {% endif %}
+            </td>
+            <td>{{ u.balance }}</td>
+            <td>
+                {% if u.is_banned %}
+                    <span class="badge bg-danger">Banned</span>
+                {% else %}
+                    <span class="badge bg-success">Active</span>
+                {% endif %}
+            </td>
+            <td>{{ u.created_at|vn }}</td>
+            <td><a class="btn btn-sm btn-outline-info" href="/users/{{ u.id }}">View</a></td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+<nav aria-label="User pages">
+    <ul class="pagination">
+        <li class="page-item {% if page <= 1 %}disabled{% endif %}">
+            <a class="page-link" href="/users?q={{ q|urlencode }}&page=1&per_page={{ per_page }}">Đầu</a>
+        </li>
+        <li class="page-item {% if page <= 1 %}disabled{% endif %}">
+            <a class="page-link" href="/users?q={{ q|urlencode }}&page={{ page - 1 }}&per_page={{ per_page }}">Trước</a>
+        </li>
+        <li class="page-item disabled"><span class="page-link">{{ page }} / {{ total_pages }}</span></li>
+        <li class="page-item {% if page >= total_pages %}disabled{% endif %}">
+            <a class="page-link" href="/users?q={{ q|urlencode }}&page={{ page + 1 }}&per_page={{ per_page }}">Sau</a>
+        </li>
+        <li class="page-item {% if page >= total_pages %}disabled{% endif %}">
+            <a class="page-link" href="/users?q={{ q|urlencode }}&page={{ total_pages }}&per_page={{ per_page }}">Cuối</a>
+        </li>
+    </ul>
+</nav>
+{% endblock %}
+
+
