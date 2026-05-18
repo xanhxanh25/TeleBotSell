@@ -303,6 +303,7 @@ Endpoints:
 - `GET /pay/tokenpay/return_url`
 
 `/pay/tokenpay/notify_url` là webhook TokenPay gọi về backend sau khi phát hiện thanh toán.
+<img width="861" height="1091" alt="ducanh" src="https://github.com/user-attachments/assets/d7ba8b23-1dcb-449f-8306-3da83172d451" />
 
 ### Admin API
 
@@ -378,6 +379,7 @@ Màn hình/chức năng chính:
 - Mật khẩu phụ thuộc `ADMIN_PASSWORD_HASH`.
 
 Nên tạo hash riêng cho production, không dùng giá trị mẫu.
+<img width="1721" height="666" alt="adminweb" src="https://github.com/user-attachments/assets/4815020c-8da7-4277-ba9e-7a340a0c855c" />
 
 ## Telegram Bot
 
@@ -404,7 +406,7 @@ Bot có:
 - Watchdog log sức khỏe runtime.
 - Cache sản phẩm/balance.
 - Đa ngôn ngữ trong `APITELE/app/i18n`.
-
+<img width="861" height="330" alt="bot" src="https://github.com/user-attachments/assets/d7e6a1b5-50eb-478e-a061-a7016d361385" />
 ## TokenPay
 
 TokenPay là ứng dụng ASP.NET Core .NET 8, build từ `TokenPay/src/Dockerfile`, chạy port `5001`.
