@@ -12,7 +12,7 @@ Hệ thống được đóng gói bằng Docker Compose, gồm backend FastAPI, 
 - Quản trị shop: admin tạo/sửa sản phẩm, import stock, quản lý coupon, user, balance, đơn hàng, topup và ticket.
 - Hỗ trợ sau bán: user gửi ticket bảo hành/báo lỗi, admin duyệt/reject và có thể gửi replacement qua Telegram.
 - Mở API cho seller: admin cấp seller API key, seller gọi API HMAC để xem sản phẩm, checkout, xem balance/orders và tạo coupon.
-<img width="647" height="339" alt="Screenshot 2026-05-18 180815" src="https://github.com/user-attachments/assets/a7149336-5b0f-41dd-9b01-37273b5e95eb" />
+<img width="861" height="330" alt="Screenshot 2026-05-18 181251" src="https://github.com/user-attachments/assets/53699e20-7680-49f2-836f-24d34d2b2a00" />
 
 ## Minh chứng từ source
 
