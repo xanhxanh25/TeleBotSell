@@ -1,8 +1,6 @@
-# Environment / secrets
-.env
+# Local-only environment variants
 .env.local
 .env.*.local
-TokenPay/src/TokenPay/appsettings.json
 
 # Python
 __pycache__/
