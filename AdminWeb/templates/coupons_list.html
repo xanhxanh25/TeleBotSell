@@ -1,0 +1,224 @@
+{% extends "base.html" %}
+{% block title %}Mã giảm giá{% endblock %}
+{% block content %}
+<h1>Quản lý mã giảm giá</h1>
+
+<div class="alert alert-info">
+    <h5 class="alert-heading"><i class="bi bi-info-circle"></i> Các loại mã giảm giá</h5>
+    <ul class="mb-0">
+        <li><strong>Loại 1:</strong> Giảm giá tự động theo số lượng (cấu hình trong sản phẩm)</li>
+        <li><strong>Loại 2:</strong> Mã riêng cho 1 user cụ thể (nhập ID User)</li>
+        <li><strong>Loại 3:</strong> Mã cho mọi user trên 1 sản phẩm (nhập ID Sản phẩm, để trống ID User)</li>
+        <li><strong>Mặc định:</strong> Mã cho mọi user, mọi sản phẩm (để trống cả 2 ID)</li>
+    </ul>
+</div>
+
+<table class="table table-striped align-middle mb-4">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Mã</th>
+        <th>Loại</th>
+        <th>Giá trị</th>
+        <th>Đơn tối thiểu</th>
+        <th>Giảm tối đa</th>
+        <th>Lượt dùng</th>
+        <th>Đã dùng / Còn</th>
+        <th>Cộng lượt</th>
+        <th>Sản phẩm</th>
+        <th>User</th>
+        <th>Giới hạn qty</th>
+        <th>Trạng thái</th>
+        <th></th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for c in coupons %}
+        <tr>
+            <td>{{ c.id }}</td>
+            <td><code>{{ c.code }}</code></td>
+            <td>
+                {% if c.discount_type == "PERCENT" %}
+                    <span class="badge bg-info">%</span>
+                {% else %}
+                    <span class="badge bg-warning">Số tiền</span>
+                {% endif %}
+            </td>
+            <td>
+                {% if c.discount_type == "PERCENT" %}
+                    {{ c.discount_value }}%
+                {% else %}
+                    ${{ c.discount_value }}
+                {% endif %}
+            </td>
+            <td>
+                {% if c.min_order_amount %}
+                    ${{ "%.2f"|format(c.min_order_amount) }}
+                {% else %}
+                    -
+                {% endif %}
+            </td>
+            <td>
+                {% if c.max_discount_amount %}
+                    ${{ "%.2f"|format(c.max_discount_amount) }}
+                {% else %}
+                    -
+                {% endif %}
+            </td>
+            <td>
+                <div class="small">
+                    <div><strong>Total:</strong> {{ c.max_uses_total if c.max_uses_total is not none else "∞" }}</div>
+                    <div><strong>/User:</strong> {{ c.max_uses_per_user if c.max_uses_per_user is not none else "∞" }}</div>
+                </div>
+            </td>
+            <td class="small">
+                {% set u = usage_by_cid.get(c.id, {}) %}
+                <div><strong>Đã dùng:</strong> {{ u.get('used', 0) }}</div>
+                <div>
+                    <strong>Còn:</strong>
+                    {% if u.get('remaining') is not none %}
+                        {{ u.get('remaining') }}
+                    {% else %}
+                        ∞
+                    {% endif %}
+                </div>
+                <a href="/coupons/{{ c.id }}/usage" class="btn btn-sm btn-outline-secondary mt-1">Chi tiết</a>
+            </td>
+            <td>
+                <form method="post" action="/coupons/{{ c.id }}/add-uses" class="d-flex gap-1 align-items-center">
+                    <input type="number" name="add" value="5" min="1" class="form-control form-control-sm" style="width:5rem">
+                    <button type="submit" class="btn btn-sm btn-success">+</button>
+                </form>
+            </td>
+            <td>
+                {% if c.product_id %}
+                    {% if c.product_id in products %}
+                        <span class="badge bg-primary">{{ products[c.product_id].name }}</span>
+                    {% else %}
+                        <span class="badge bg-secondary">ID: {{ c.product_id }}</span>
+                    {% endif %}
+                {% else %}
+                    <span class="text-muted">Tất cả</span>
+                {% endif %}
+            </td>
+            <td>
+                {% if c.user_id %}
+                    {% if c.user_id in users %}
+                        <span class="badge bg-success">
+                            ID: {{ users[c.user_id].telegram_id }}
+                            {% if users[c.user_id].telegram_user %}
+                                (@{{ users[c.user_id].telegram_user }})
+                            {% endif %}
+                        </span>
+                    {% else %}
+                        <span class="badge bg-secondary">ID: {{ c.user_id }}</span>
+                    {% endif %}
+                {% else %}
+                    <span class="text-muted">Tất cả</span>
+                {% endif %}
+            </td>
+            <td>
+                {% if c.max_qty_per_order is not none %}
+                    {{ c.max_qty_per_order }}
+                {% else %}
+                    -
+                {% endif %}
+            </td>
+            <td>{{ "✅" if c.is_active else "❌" }}</td>
+            <td>
+                <form method="post" action="/coupons/{{ c.id }}/delete"
+                      onsubmit="return confirm('Xóa mã giảm giá {{ c.code }}?');">
+                    <button class="btn btn-sm btn-danger" type="submit">
+                        <i class="bi bi-trash"></i> Xóa
+                    </button>
+                </form>
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+<h2><i class="bi bi-plus-circle"></i> Tạo / Cập nhật mã giảm giá</h2>
+<div class="alert alert-light border">
+    <h6 class="alert-heading"><i class="bi bi-question-circle"></i> Hướng dẫn</h6>
+    <ul class="mb-0 small">
+        <li><strong>ID:</strong> Để trống nếu muốn <b>tạo mới</b>; nhập ID có sẵn nếu muốn <b>sửa</b>.</li>
+        <li><strong>Mã:</strong> Mã khách sẽ nhập trong bot (ví dụ: DEAL20, SALE50).</li>
+        <li><strong>Loại:</strong> <code>PERCENT</code> = giảm theo %; <code>FIXED</code> = giảm số tiền cố định (USD).</li>
+        <li><strong>Giá trị:</strong> Nếu loại là %, nhập số % (ví dụ: 20 = 20%); nếu loại là số tiền, nhập số USD.</li>
+        <li><strong>Đơn tối thiểu:</strong> Đơn giá tối thiểu để được áp dụng mã (có thể bỏ trống).</li>
+        <li><strong>Giảm tối đa:</strong> Giới hạn tối đa số tiền được giảm (dùng cho %).</li>
+        <li><strong>ID Sản phẩm:</strong> Để trống = áp dụng cho tất cả sản phẩm; nhập ID = chỉ áp dụng cho sản phẩm đó.</li>
+        <li><strong>ID User:</strong> Để trống = áp dụng cho tất cả user; nhập ID = chỉ áp dụng cho user đó (mã riêng).</li>
+        <li><strong>Lượt dùng (Total):</strong> Tổng số lần dùng mã (vd 10 = 10 user dùng là hết).</li>
+        <li><strong>Lượt/User:</strong> Mỗi user dùng tối đa (vd 1).</li>
+        <li><strong>Giới hạn qty:</strong> Số lượng tối đa trong 1 lần mua khi dùng mã (vd 1 = tối đa 1 sản phẩm).</li>
+    </ul>
+</div>
+<form method="post" action="/coupons/save" class="row g-2">
+    <div class="col-md-1">
+        <label class="form-label">ID (tùy chọn)</label>
+        <input class="form-control" name="coupon_id" placeholder="Để sửa">
+    </div>
+    <div class="col-md-2">
+        <label class="form-label">Mã <span class="text-danger">*</span></label>
+        <input class="form-control" name="code" required placeholder="DEAL20">
+    </div>
+    <div class="col-md-2">
+        <label class="form-label">Loại</label>
+        <select class="form-select" name="discount_type">
+            <option value="PERCENT">PERCENT (%)</option>
+            <option value="FIXED">FIXED (USD)</option>
+        </select>
+    </div>
+    <div class="col-md-2">
+        <label class="form-label">Giá trị <span class="text-danger">*</span></label>
+        <input class="form-control" type="number" step="0.01" name="discount_value" required placeholder="20">
+    </div>
+    <div class="col-md-2">
+        <label class="form-label">Đơn tối thiểu</label>
+        <input class="form-control" type="number" step="0.01" name="min_order_amount" placeholder="0">
+    </div>
+    <div class="col-md-2">
+        <label class="form-label">Giảm tối đa</label>
+        <input class="form-control" type="number" step="0.01" name="max_discount_amount" placeholder="0">
+    </div>
+    <div class="col-md-2">
+        <label class="form-label">Lượt dùng (Total)</label>
+        <input class="form-control" type="number" step="1" min="1" name="max_uses_total" placeholder="vd 10">
+    </div>
+    <div class="col-md-2">
+        <label class="form-label">Lượt / User</label>
+        <input class="form-control" type="number" step="1" min="1" name="max_uses_per_user" placeholder="vd 1">
+        <small class="text-muted">Để trống = không giới hạn số lần / user (chỉ còn lượt total + rule khác).</small>
+    </div>
+    <div class="col-md-2">
+        <label class="form-label">Sản phẩm (tùy chọn)</label>
+        <select class="form-select" name="product_id">
+            <option value="">Để trống = tất cả</option>
+            {% for pid, product in products.items() %}
+            <option value="{{ pid }}">{{ product.name }} (ID: {{ pid }})</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-2">
+        <label class="form-label">ID User (tùy chọn)</label>
+        <input class="form-control" type="number" name="user_id" placeholder="Để trống = tất cả">
+        <small class="text-muted">Nhập ID database hoặc Telegram ID</small>
+    </div>
+    <div class="col-md-2">
+        <label class="form-label">Giới hạn qty / order</label>
+        <input class="form-control" type="number" step="1" min="1" name="max_qty_per_order" placeholder="vd 1">
+    </div>
+    <div class="col-md-1 d-flex align-items-end">
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="is_active" id="coupon_active" checked>
+            <label class="form-check-label" for="coupon_active">Kích hoạt</label>
+        </div>
+    </div>
+    <div class="col-12 mt-3">
+        <button class="btn btn-primary" type="submit">Lưu mã giảm giá</button>
+        <a class="btn btn-secondary" href="/">Về trang chủ</a>
+    </div>
+</form>
+{% endblock %}

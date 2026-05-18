@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+{% block title %}Broadcast{% endblock %}
+{% block content %}
+<h1>Broadcast helper</h1>
+<p class="text-muted">
+    Soạn nội dung thông báo với định dạng rich text. Telegram hỗ trợ: <b>Bold</b>, <i>Italic</i>, <u>Underline</u>, <s>Strikethrough</s>, <code>Code</code>, Link.
+</p>
+<form method="post" action="/broadcast" class="mb-4" id="broadcast-form">
+    <div class="mb-2">
+        <label class="form-label">Target users</label>
+        <select class="form-select" name="target">
+            <option value="all">Tất cả user</option>
+            <option value="positive_balance">User có số dư &gt; 0</option>
+            <option value="has_orders">User từng mua hàng</option>
+            <option value="no_orders">User chưa từng mua hàng</option>
+        </select>
+    </div>
+
+    <!-- Toolbar -->
+    <label class="form-label">Message</label>
+    <div class="border rounded-top p-2 bg-light d-flex flex-wrap gap-1 align-items-center" id="toolbar">
+        <button type="button" class="btn btn-sm btn-outline-dark" onclick="wrapTag('b')" title="Bold (Ctrl+B)">
+            <b>B</b>
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-dark" onclick="wrapTag('i')" title="Italic (Ctrl+I)">
+            <i>I</i>
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-dark" onclick="wrapTag('u')" title="Underline (Ctrl+U)">
+            <u>U</u>
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-dark" onclick="wrapTag('s')" title="Strikethrough">
+            <s>S</s>
+        </button>
+        <div class="vr mx-1"></div>
+        <button type="button" class="btn btn-sm btn-outline-dark" onclick="wrapTag('code')" title="Inline code">
+            <i class="bi bi-code"></i> Code
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-dark" onclick="wrapTag('pre')" title="Code block">
+            <i class="bi bi-code-square"></i> Pre
+        </button>
+        <div class="vr mx-1"></div>
+        <button type="button" class="btn btn-sm btn-outline-dark" onclick="insertLink()" title="Insert link">
+            <i class="bi bi-link-45deg"></i> Link
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-dark" onclick="insertEmoji('📢')" title="Megaphone">📢</button>
+        <button type="button" class="btn btn-sm btn-outline-dark" onclick="insertEmoji('✅')" title="Check">✅</button>
+        <button type="button" class="btn btn-sm btn-outline-dark" onclick="insertEmoji('❌')" title="Cross">❌</button>
+        <button type="button" class="btn btn-sm btn-outline-dark" onclick="insertEmoji('⚠️')" title="Warning">⚠️</button>
+        <button type="button" class="btn btn-sm btn-outline-dark" onclick="insertEmoji('🔥')" title="Fire">🔥</button>
+        <button type="button" class="btn btn-sm btn-outline-dark" onclick="insertEmoji('💰')" title="Money">💰</button>
+        <button type="button" class="btn btn-sm btn-outline-dark" onclick="insertEmoji('🎉')" title="Party">🎉</button>
+        <button type="button" class="btn btn-sm btn-outline-dark" onclick="insertEmoji('📦')" title="Package">📦</button>
+    </div>
+
+    <!-- Editor -->
+    <textarea class="form-control rounded-top-0 border-top-0" name="message" id="msg-editor" rows="8" required
+              style="font-family: 'Consolas', 'Monaco', monospace; font-size: 14px; resize: vertical;"></textarea>
+
+    <!-- Preview -->
+    <div class="mt-2">
+        <button type="button" class="btn btn-sm btn-outline-info" onclick="togglePreview()">
+            <i class="bi bi-eye"></i> Preview
+        </button>
+    </div>
+    <div id="preview-box" class="border rounded p-3 mt-2 bg-light" style="display:none; min-height: 60px;">
+        <small class="text-muted d-block mb-2">Telegram preview (xấp xỉ):</small>
+        <div id="preview-content" style="white-space: pre-wrap; font-family: -apple-system, sans-serif;"></div>
+    </div>
+
+    <div class="d-flex gap-2 mt-3">
+        <button class="btn btn-success" type="submit" name="action" value="send"
+                onclick="return confirm('Bạn có chắc muốn gửi broadcast ngay bây giờ?');">
+            📤 Send now
+        </button>
+        <button class="btn btn-primary" type="submit" name="action" value="generate">
+            📄 Generate recipients file
+        </button>
+    </div>
+</form>
+
+{% if send_result %}
+    {% if send_result.success %}
+        <div class="alert alert-success">
+            <h5>📊 Kết quả broadcast</h5>
+            <p><b>Tổng:</b> {{ send_result.total }} users</p>
+            <p><b>✅ Thành công:</b> {{ send_result.success_count }}/{{ send_result.total }}</p>
+            <p><b>❌ Thất bại:</b> {{ send_result.failed_count }}/{{ send_result.total }}</p>
+            {% if send_result.get('all_unauthorized') %}
+                <div class="alert alert-warning mt-2">
+                    <strong>⚠️ Cảnh báo quan trọng:</strong> Tất cả lỗi đều là "UNAUTHORIZED"!<br>
+                    Điều này có nghĩa <strong>BOT_TOKEN không hợp lệ</strong> hoặc đã hết hạn.<br><br>
+                    <strong>📋 CÁCH SỬA:</strong><br>
+                    1. Mở Telegram, tìm <strong>@BotFather</strong><br>
+                    2. Gửi lệnh <code>/mybots</code> → Chọn bot của bạn<br>
+                    3. Chọn <strong>"API Token"</strong> → Copy token mới<br>
+                    4. Cập nhật <code>BOT_TOKEN</code> trong file: <code>APITELE/.env</code><br>
+                    5. <strong>Restart AdminWeb</strong> và thử lại<br>
+                </div>
+            {% endif %}
+            {% if send_result.blocked_count > 0 %}
+                <p><b>🚫 Bị block:</b> {{ send_result.blocked_count }}</p>
+            {% endif %}
+            <p><b>⏱️ Thời gian:</b> {{ "%.1f"|format(send_result.elapsed) }}s</p>
+            {% if send_result.failed_users %}
+                <details class="mt-2">
+                    <summary>❌ Users thất bại ({{ send_result.failed_users|length }})</summary>
+                    <ul class="mt-2">
+                        {% for chat_id, error in send_result.failed_users %}
+                            <li><code>{{ chat_id }}</code>: {{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                </details>
+            {% endif %}
+        </div>
+    {% else %}
+        <div class="alert alert-danger">
+            <h5>❌ Lỗi khi gửi broadcast</h5>
+            <pre class="bg-dark text-light p-2">{{ send_result.error }}</pre>
+        </div>
+    {% endif %}
+{% endif %}
+
+{% if result %}
+    <div class="alert alert-info">
+        <p>Đã chuẩn bị <b>{{ result.count }}</b> user.</p>
+        <p>File: <code>{{ result.file }}</code></p>
+        <p>Sau đó chạy (ví dụ):</p>
+        <pre class="bg-dark text-light p-2">python APITELE/broadcast.py --file "{{ result.file }}"</pre>
+    </div>
+{% endif %}
+
+<script>
+const editor = document.getElementById('msg-editor');
+
+// Wrap selected text with HTML tag
+function wrapTag(tag) {
+    const start = editor.selectionStart;
+    const end = editor.selectionEnd;
+    const text = editor.value;
+    const selected = text.substring(start, end);
+
+    if (selected) {
+        const wrapped = `<${tag}>${selected}</${tag}>`;
+        editor.value = text.substring(0, start) + wrapped + text.substring(end);
+        editor.selectionStart = start;
+        editor.selectionEnd = start + wrapped.length;
+    } else {
+        const insert = `<${tag}></${tag}>`;
+        editor.value = text.substring(0, start) + insert + text.substring(end);
+        editor.selectionStart = editor.selectionEnd = start + tag.length + 2;
+    }
+    editor.focus();
+    updatePreview();
+}
+
+// Insert link
+function insertLink() {
+    const start = editor.selectionStart;
+    const end = editor.selectionEnd;
+    const text = editor.value;
+    const selected = text.substring(start, end);
+
+    const url = prompt('URL:', 'https://');
+    if (!url) return;
+
+    const linkText = selected || prompt('Link text:', 'Click here') || 'Link';
+    const insert = `<a href="${url}">${linkText}</a>`;
+    editor.value = text.substring(0, start) + insert + text.substring(end);
+    editor.selectionStart = editor.selectionEnd = start + insert.length;
+    editor.focus();
+    updatePreview();
+}
+
+// Insert emoji at cursor
+function insertEmoji(emoji) {
+    const start = editor.selectionStart;
+    const text = editor.value;
+    editor.value = text.substring(0, start) + emoji + text.substring(start);
+    editor.selectionStart = editor.selectionEnd = start + emoji.length;
+    editor.focus();
+    updatePreview();
+}
+
+// Keyboard shortcuts
+editor.addEventListener('keydown', function(e) {
+    if (e.ctrlKey || e.metaKey) {
+        switch(e.key.toLowerCase()) {
+            case 'b': e.preventDefault(); wrapTag('b'); break;
+            case 'i': e.preventDefault(); wrapTag('i'); break;
+            case 'u': e.preventDefault(); wrapTag('u'); break;
+        }
+    }
+});
+
+// Preview
+function togglePreview() {
+    const box = document.getElementById('preview-box');
+    box.style.display = box.style.display === 'none' ? 'block' : 'none';
+    if (box.style.display === 'block') updatePreview();
+}
+
+function updatePreview() {
+    const html = editor.value
+        .replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        // Restore allowed Telegram HTML tags
+        .replace(/&lt;b&gt;/g, '<b>').replace(/&lt;\/b&gt;/g, '</b>')
+        .replace(/&lt;i&gt;/g, '<i>').replace(/&lt;\/i&gt;/g, '</i>')
+        .replace(/&lt;u&gt;/g, '<u>').replace(/&lt;\/u&gt;/g, '</u>')
+        .replace(/&lt;s&gt;/g, '<s>').replace(/&lt;\/s&gt;/g, '</s>')
+        .replace(/&lt;code&gt;/g, '<code>').replace(/&lt;\/code&gt;/g, '</code>')
+        .replace(/&lt;pre&gt;/g, '<pre>').replace(/&lt;\/pre&gt;/g, '</pre>')
+        .replace(/&lt;a href=&quot;([^&]*)&quot;&gt;/g, '<a href="$1" target="_blank">').replace(/&lt;\/a&gt;/g, '</a>');
+    document.getElementById('preview-content').innerHTML = html;
+}
+
+editor.addEventListener('input', function() {
+    if (document.getElementById('preview-box').style.display !== 'none') {
+        updatePreview();
+    }
+});
+</script>
+{% endblock %}

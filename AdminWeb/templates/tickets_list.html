@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Tickets{% endblock %}
+{% block content %}
+<h1>Tickets</h1>
+<form class="row g-2 mb-3" method="get">
+    <div class="col-auto">
+        <label class="form-label">Status</label>
+        <select class="form-select" name="status" onchange="this.form.submit()">
+            {% for s in ['ALL','OPEN','APPROVED','REJECTED','COMPLETED'] %}
+                <option value="{{ s }}" {% if status == s %}selected{% endif %}>{{ s }}</option>
+            {% endfor %}
+        </select>
+    </div>
+</form>
+<table class="table table-striped table-sm">
+    <thead>
+    <tr>
+        <th>ID</th><th>Telegram ID</th><th>Username</th><th>Order ID</th><th>Status</th><th>Created</th><th></th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for t in tickets %}
+        <tr>
+            <td>{{ t.id }}</td>
+            <td>{{ t.telegram_id }}</td>
+            <td>
+                {% set user = users.get(t.user_id) if users else None %}
+                {% if user and user.telegram_user %}
+                    <code>@{{ user.telegram_user }}</code>
+                {% else %}
+                    <span class="text-muted">-</span>
+                {% endif %}
+            </td>
+            <td>{{ t.order_id }}</td>
+            <td>{{ t.status }}</td>
+            <td>{{ t.created_at|vn }}</td>
+            <td><a class="btn btn-sm btn-outline-info" href="/tickets/{{ t.id }}">View</a></td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
+
+

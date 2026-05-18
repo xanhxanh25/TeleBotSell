@@ -1,0 +1,12 @@
+services:
+  postgres:
+    ports: []
+
+  tokenpay:
+    ports: []
+
+  token_shop_backend:
+    ports: []
+
+  adminweb:
+    ports: []

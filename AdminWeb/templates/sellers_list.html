@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %}API Sellers{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="mb-0 border-0 pb-0">API Sellers</h1>
+    <div>
+        <a href="/sellers/api-doc" class="btn btn-outline-info me-2"><i class="bi bi-book"></i> API Docs</a>
+        <a href="/sellers/api-doc/download" class="btn btn-outline-primary me-2"><i class="bi bi-download"></i> Tải API Docs</a>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createModal">
+            <i class="bi bi-plus-lg"></i> Cấp Key Mới
+        </button>
+    </div>
+</div>
+
+{% if error %}
+<div class="alert alert-danger"><i class="bi bi-exclamation-triangle"></i> {{ error }}</div>
+{% endif %}
+
+<table class="table table-striped table-sm">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Telegram ID</th>
+        <th>Username</th>
+        <th>API Key</th>
+        <th>Status</th>
+        <th>Balance</th>
+        <th>Ngày tạo</th>
+        <th>Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for k in keys %}
+    <tr>
+        <td>{{ k.key_id }}</td>
+        <td>{{ k.telegram_id }}</td>
+        <td>
+            {% if k.telegram_user %}
+                <code>@{{ k.telegram_user }}</code>
+            {% else %}
+                <span class="text-muted">-</span>
+            {% endif %}
+        </td>
+        <td><code>{{ k.masked_key }}</code></td>
+        <td><span class="badge bg-success">Active</span></td>
+        <td>{{ "%.2f"|format(k.balance) }}</td>
+        <td>{{ k.created_at }}</td>
+        <td>
+            <a href="/sellers/{{ k.key_id }}/credentials" class="btn btn-sm btn-outline-info">Xem</a>
+            <form method="post" action="/sellers/{{ k.key_id }}/rotate" class="d-inline"
+                  onsubmit="return confirm('Bạn chắc chắn đổi key? Key cũ sẽ bị vô hiệu ngay!')">
+                <button type="submit" class="btn btn-sm btn-outline-warning">Đổi Key</button>
+            </form>
+            <form method="post" action="/sellers/{{ k.key_id }}/revoke" class="d-inline"
+                  onsubmit="return confirm('Xóa key này? Seller sẽ không dùng API được nữa!')">
+                <button type="submit" class="btn btn-sm btn-outline-danger">Xóa Key</button>
+            </form>
+        </td>
+    </tr>
+    {% endfor %}
+    {% if not keys %}
+    <tr><td colspan="8" class="text-center text-muted py-4">Chưa có seller nào được cấp key.</td></tr>
+    {% endif %}
+    </tbody>
+</table>
+
+<!-- Modal Cap Key Moi -->
+<div class="modal fade" id="createModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="/sellers/create">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-key"></i> Cấp API Key Mới</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Telegram ID <span class="text-danger">*</span></label>
+                        <input type="number" name="telegram_id" class="form-control" required
+                               placeholder="VD: 123456789">
+                        <div class="form-text">Nhập Telegram ID của user cần cấp key.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Note</label>
+                        <input type="text" name="note" class="form-control" placeholder="Ghi chú (tùy chọn)">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Cấp Key</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

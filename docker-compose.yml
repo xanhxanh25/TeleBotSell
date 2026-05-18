@@ -1,0 +1,136 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres
+    restart: unless-stopped
+    environment:
+      TZ: Asia/Ho_Chi_Minh
+      POSTGRES_DB: tele_shop
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d tele_shop"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - app_net
+
+  tokenpay:
+    build:
+      context: ./TokenPay/src
+      dockerfile: Dockerfile
+    container_name: tokenpay
+    restart: unless-stopped
+    command: ["dotnet", "TokenPay.dll", "--urls=http://0.0.0.0:5001"]
+    environment:
+      TZ: Asia/Ho_Chi_Minh
+    ports:
+      - "127.0.0.1:5001:5001"
+    volumes:
+      - ./TokenPay/src/TokenPay/appsettings.json:/app/appsettings.json
+      - tokenpay_data:/data
+      - tokenpay_logs:/app/logs
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:5001/ >/dev/null || exit 1"]
+      interval: 20s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - app_net
+
+  token_shop_backend:
+    build:
+      context: ./token_shop_backend
+      dockerfile: Dockerfile
+    container_name: token_shop_backend
+    restart: unless-stopped
+    env_file:
+      - ./.env
+    environment:
+      TZ: Asia/Ho_Chi_Minh
+      DATABASE_URL: postgresql+psycopg2://postgres:postgres@postgres:5432/tele_shop
+      TOKENPAY_API_BASE: http://tokenpay:5001
+      # TokenPay gọi notify từ trong container — phải dùng tên service Docker, không dùng 127.0.0.1
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-http://token_shop_backend:8000}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      tokenpay:
+        condition: service_started
+    ports:
+      - "127.0.0.1:8000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3)"]
+      interval: 20s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - app_net
+
+  adminweb:
+    build:
+      context: .
+      dockerfile: AdminWeb/Dockerfile
+    container_name: adminweb
+    restart: unless-stopped
+    env_file:
+      - ./.env
+    environment:
+      TZ: Asia/Ho_Chi_Minh
+      DATABASE_URL: postgresql+psycopg2://postgres:postgres@postgres:5432/tele_shop
+    depends_on:
+      postgres:
+        condition: service_healthy
+      token_shop_backend:
+        condition: service_healthy
+    ports:
+      - "8001:8001"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/health', timeout=3)"]
+      interval: 20s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - app_net
+
+  apitele:
+    build:
+      context: ./APITELE
+      dockerfile: Dockerfile
+    container_name: apitele
+    restart: unless-stopped
+    env_file:
+      - ./.env
+    environment:
+      TZ: Asia/Ho_Chi_Minh
+      ORDER_API_BASE: http://token_shop_backend:8000
+      ADMIN_API_BASE: http://adminweb:8001
+      PAYMENT_API_BASE: http://token_shop_backend:8000
+    volumes:
+      - ./.env:/app/APITELE/.env:ro
+    depends_on:
+      token_shop_backend:
+        condition: service_healthy
+      adminweb:
+        condition: service_healthy
+      tokenpay:
+        condition: service_started
+    networks:
+      - app_net
+
+networks:
+  app_net:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  tokenpay_data:
+  tokenpay_logs:

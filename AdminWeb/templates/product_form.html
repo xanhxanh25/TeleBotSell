@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% block title %}Product{% endblock %}
+{% block content %}
+<h1>{{ "Edit product" if product else "New product" }}</h1>
+<form method="post" action="/products/save" class="mt-3">
+    {% if product %}
+        <input type="hidden" name="product_id" value="{{ product.id }}">
+    {% endif %}
+    <div class="row mb-3">
+        <div class="col-md-3">
+            <label class="form-label">Code</label>
+            <input class="form-control" name="code" value="{{ product.code if product else '' }}" required>
+        </div>
+        <div class="col-md-5">
+            <label class="form-label">Name</label>
+            <input class="form-control" name="name" value="{{ product.name if product else '' }}" required>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">Price (USD)</label>
+            <input class="form-control" type="number" step="0.000001" name="price"
+                   value="{{ product.price if product else '0' }}" required>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">Stock (cache)</label>
+            <input class="form-control" type="number" name="stock"
+                   value="{{ product.stock if product else '0' }}">
+            <small class="text-muted">Neu ban quan ly ton kho bang trang <b>Manage stock items</b>, so nay se tu dong sync.</small>
+        </div>
+    </div>
+    <div class="row mb-3">
+        <div class="col-md-2">
+            <label class="form-label">Sort Order</label>
+            <input class="form-control" type="number" name="sort_order"
+                   value="{{ product.sort_order if product and product.sort_order is not none else '' }}"
+                   placeholder="Số nhỏ hơn hiển thị trước">
+            <small class="text-muted">Số nhỏ hơn hiển thị trước, để trống sẽ hiển thị cuối</small>
+        </div>
+        <div class="col-12 mt-2">
+            <label class="form-label"><strong>Giam gia theo so luong (tiers)</strong></label>
+            <div class="alert alert-info py-2 mb-2">
+                <b>Cach dung nhanh:</b> moi dong la 1 moc.
+                <br>- Mua tu <code>min_qty</code> tro len -> giam <code>percent</code>%
+                <br>- He thong tu chon <b>moc cao nhat</b> ma user dat duoc
+                <br>- Vi du: 10 -> 10%, 50 -> 15%
+            </div>
+            <div class="d-flex gap-2 mb-2">
+                <button class="btn btn-sm btn-outline-primary" type="button" onclick="addTierRow()">+ Them moc</button>
+                <button class="btn btn-sm btn-outline-secondary" type="button" onclick="applyCommonTierPreset()">Dung mau 10->10%, 50->15%</button>
+                <button class="btn btn-sm btn-outline-danger" type="button" onclick="clearTierRows()">Xoa tat ca moc</button>
+            </div>
+            <table class="table table-sm table-bordered" id="tier-table">
+                <thead><tr><th style="width:40%">Min qty</th><th style="width:40%">Giam %</th><th style="width:20%">Thao tac</th></tr></thead>
+                <tbody id="tier-body">
+                {% for t in (qty_tiers or []) %}
+                <tr>
+                    <td><input class="form-control form-control-sm" type="number" min="1" name="tier_min" value="{{ t.min_qty }}"></td>
+                    <td><input class="form-control form-control-sm" type="number" step="0.01" min="0" max="100" name="tier_pct" value="{{ t.percent }}"></td>
+                    <td><button type="button" class="btn btn-sm btn-outline-danger" onclick="removeTierRow(this)">Xoa</button></td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            <small class="text-muted">Goi y: neu ban khong dung tiers, de trong bang nay.</small>
+        </div>
+        <div class="col-12 mt-2">
+            <details>
+                <summary><b>Legacy (cu) - chi dung khi can 1 moc duy nhat</b></summary>
+                <div class="row mt-2">
+                    <div class="col-md-2">
+                        <label class="form-label">Legacy: Qty min</label>
+                        <input class="form-control" type="number" name="qty_discount_min"
+                               value="{{ product.qty_discount_min if product and product.qty_discount_min is not none else '' }}">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Legacy: Qty %</label>
+                        <input class="form-control" type="number" step="0.01" name="qty_discount_percent"
+                               value="{{ product.qty_discount_percent if product and product.qty_discount_percent is not none else '' }}">
+                    </div>
+                </div>
+            </details>
+        </div>
+        <div class="col-md-3 d-flex align-items-end">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="is_active" id="is_active"
+                       {% if not product or product.is_active %}checked{% endif %}>
+                <label class="form-check-label" for="is_active">Active</label>
+            </div>
+        </div>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Mô tả sản phẩm (Đa ngôn ngữ)</label>
+        <ul class="nav nav-tabs mb-2" id="descTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="vi-tab" data-bs-toggle="tab" data-bs-target="#vi" type="button" role="tab">
+                    🇻🇳 Tiếng Việt
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="en-tab" data-bs-toggle="tab" data-bs-target="#en" type="button" role="tab">
+                    🇬🇧 English (Mặc định)
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="zh-tab" data-bs-toggle="tab" data-bs-target="#zh" type="button" role="tab">
+                    🇨🇳 中文
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="ru-tab" data-bs-toggle="tab" data-bs-target="#ru" type="button" role="tab">
+                    🇷🇺 Русский
+                </button>
+            </li>
+        </ul>
+        <div class="tab-content" id="descTabsContent">
+            <div class="tab-pane fade" id="vi" role="tabpanel">
+                <textarea class="form-control" name="description_vi" rows="5" placeholder="Nhập mô tả sản phẩm bằng tiếng Việt...">{{ descriptions.vi if descriptions else '' }}</textarea>
+            </div>
+            <div class="tab-pane fade show active" id="en" role="tabpanel">
+                <textarea class="form-control" name="description_en" rows="5" placeholder="Enter product description in English (default)...">{{ descriptions.en if descriptions else '' }}</textarea>
+            </div>
+            <div class="tab-pane fade" id="zh" role="tabpanel">
+                <textarea class="form-control" name="description_zh" rows="5" placeholder="输入产品描述（中文）...">{{ descriptions.zh if descriptions else '' }}</textarea>
+            </div>
+            <div class="tab-pane fade" id="ru" role="tabpanel">
+                <textarea class="form-control" name="description_ru" rows="5" placeholder="Введите описание продукта (русский)...">{{ descriptions.ru if descriptions else '' }}</textarea>
+            </div>
+        </div>
+        <small class="text-muted">API sẽ trả về description theo query param <code>?lang=en</code> (mặc định: en). Hỗ trợ 4 ngôn ngữ: Việt (vi), English (en), 中文 (zh), Русский (ru). Fallback về tiếng Anh nếu ngôn ngữ không tồn tại.</small>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Delivery payload (template)</label>
+        <textarea class="form-control" name="delivery_payload" rows="2">{{ product.delivery_payload if product else '' }}</textarea>
+    </div>
+    <button class="btn btn-primary" type="submit">Save</button>
+    <a class="btn btn-secondary" href="/products">Back</a>
+    {% if product %}
+        <a class="btn btn-info" href="/products/{{ product.id }}/stock">Manage stock items</a>
+    {% endif %}
+</form>
+
+<script>
+function addTierRow(minQty = "", pct = "") {
+    const tb = document.getElementById("tier-body");
+    const tr = document.createElement("tr");
+    tr.innerHTML = '<td><input class="form-control form-control-sm" type="number" min="1" name="tier_min" value="' + minQty + '"></td>'
+        + '<td><input class="form-control form-control-sm" type="number" step="0.01" min="0" max="100" name="tier_pct" value="' + pct + '"></td>'
+        + '<td><button type="button" class="btn btn-sm btn-outline-danger" onclick="removeTierRow(this)">Xoa</button></td>';
+    tb.appendChild(tr);
+}
+
+function removeTierRow(btn) {
+    const tr = btn.closest("tr");
+    if (tr) tr.remove();
+}
+
+function clearTierRows() {
+    const tb = document.getElementById("tier-body");
+    tb.innerHTML = "";
+}
+
+function applyCommonTierPreset() {
+    clearTierRows();
+    addTierRow(10, 10);
+    addTierRow(50, 15);
+}
+</script>
+{% endblock %}
+
+

@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Coupon {{ coupon.code }} — usage{% endblock %}
+{% block content %}
+<h1>Mã <code>{{ coupon.code }}</code> — lịch sử redemption</h1>
+<p>
+    <strong>Đã dùng (COMMITTED):</strong> {{ used }}
+    {% if coupon.max_uses_total is not none %}
+    &nbsp;|&nbsp; <strong>Giới hạn:</strong> {{ coupon.max_uses_total }}
+    &nbsp;|&nbsp; <strong>Còn lại (ước lượng):</strong> {{ remaining }}
+    {% else %}
+    &nbsp;|&nbsp; <em>Không giới hạn tổng</em>
+    {% endif %}
+</p>
+<p><a href="/coupons" class="btn btn-secondary btn-sm">← Danh sách mã</a></p>
+
+<table class="table table-sm table-striped">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>User DB</th>
+        <th>Telegram</th>
+        <th>Order</th>
+        <th>Status</th>
+        <th>Thời gian</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for r, u in rows %}
+    <tr>
+        <td>{{ r.id }}</td>
+        <td>{{ r.user_id }}</td>
+        <td>{{ u.telegram_id }}{% if u.telegram_user %} <code>@{{ u.telegram_user }}</code>{% endif %}</td>
+        <td><small>{{ r.order_id }}</small></td>
+        <td>{{ r.status }}</td>
+        <td>{{ r.created_at|vn }}</td>
+    </tr>
+    {% else %}
+    <tr><td colspan="6" class="text-muted">Chưa có dòng redemption.</td></tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+<nav aria-label="Pagination">
+    <ul class="pagination">
+        <li class="page-item {% if page <= 1 %}disabled{% endif %}">
+            <a class="page-link" href="/coupons/{{ coupon.id }}/usage?page=1&per_page={{ per_page }}">Đầu</a>
+        </li>
+        <li class="page-item {% if page <= 1 %}disabled{% endif %}">
+            <a class="page-link" href="/coupons/{{ coupon.id }}/usage?page={{ page - 1 }}&per_page={{ per_page }}">Trước</a>
+        </li>
+        <li class="page-item disabled"><span class="page-link">Trang {{ page }} / {{ total_pages }} ({{ total }} dòng)</span></li>
+        <li class="page-item {% if page >= total_pages %}disabled{% endif %}">
+            <a class="page-link" href="/coupons/{{ coupon.id }}/usage?page={{ page + 1 }}&per_page={{ per_page }}">Sau</a>
+        </li>
+        <li class="page-item {% if page >= total_pages %}disabled{% endif %}">
+            <a class="page-link" href="/coupons/{{ coupon.id }}/usage?page={{ total_pages }}&per_page={{ per_page }}">Cuối</a>
+        </li>
+    </ul>
+</nav>
+{% endblock %}

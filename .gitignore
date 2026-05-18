@@ -1,0 +1,40 @@
+# Environment / secrets
+.env
+.env.local
+.env.*.local
+TokenPay/src/TokenPay/appsettings.json
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# Logs / runtime
+logs/
+*.log
+*_logs/
+*.pid
+
+# Databases / backups / dumps
+*.db
+*.sqlite
+*.sqlite3
+*.backup
+*.dump
+*.tar.gz
+*.zip
+
+# .NET build artifacts
+bin/
+obj/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+

@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% block title %}Order {{ order.order_code }}{% endblock %}
+{% block content %}
+<h1>Order {{ order.order_code }}</h1>
+
+<div class="row">
+    <div class="col-md-6">
+        <h3>Thông tin đơn hàng</h3>
+        <table class="table  table-striped">
+            <tr>
+                <th>Order ID:</th>
+                <td><code>{{ order.id }}</code></td>
+            </tr>
+            <tr>
+                <th>Order Code:</th>
+                <td><code>{{ order.order_code }}</code></td>
+            </tr>
+            <tr>
+                <th>Status:</th>
+                <td><span class="badge bg-{% if order.status == 'PAID' %}success{% else %}warning{% endif %}">{{ order.status }}</span></td>
+            </tr>
+            <tr>
+                <th>Created:</th>
+                <td>{{ order.created_at|vn }}</td>
+            </tr>
+        </table>
+    </div>
+    
+    <div class="col-md-6">
+        <h3>Thông tin khách hàng</h3>
+        <table class="table  table-striped">
+            <tr>
+                <th>Telegram ID:</th>
+                <td>
+                    <a href="/users/{{ user.id if user else order.user_id }}">{{ order.telegram_id }}</a>
+                </td>
+            </tr>
+            {% if user %}
+            <tr>
+                <th>Telegram User:</th>
+                <td>
+                    {% if user.telegram_user %}
+                        <code>@{{ user.telegram_user }}</code>
+                    {% else %}
+                        <span class="text-muted">Chưa có</span>
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <th>Balance:</th>
+                <td>{{ user.balance }} USD</td>
+            </tr>
+            {% endif %}
+        </table>
+    </div>
+</div>
+
+<div class="row mt-3">
+    <div class="col-md-12">
+        <h3>Sản phẩm</h3>
+        <table class="table  table-striped">
+            <tr>
+                <th>Product ID:</th>
+                <td>{{ order.product_id }}</td>
+            </tr>
+            <tr>
+                <th>Product Name:</th>
+                <td>{{ order.product_name }}</td>
+            </tr>
+            <tr>
+                <th>Quantity:</th>
+                <td>{{ order.qty }}</td>
+            </tr>
+            <tr>
+                <th>Unit Price:</th>
+                <td>{{ order.unit_price }} {{ order.currency }}</td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<div class="row mt-3">
+    <div class="col-md-12">
+        <h3>Thanh toán</h3>
+        <table class="table  table-striped">
+            <tr>
+                <th>Subtotal:</th>
+                <td>{{ order.subtotal }} {{ order.currency }}</td>
+            </tr>
+            {% if order.discount_total > 0 %}
+            <tr>
+                <th>Discount:</th>
+                <td class="text-success">-{{ order.discount_total }} {{ order.currency }}</td>
+            </tr>
+            {% endif %}
+            <tr>
+                <th>Total:</th>
+                <td><b>{{ order.total }} {{ order.currency }}</b></td>
+            </tr>
+            {% if order.coupon_code %}
+            <tr>
+                <th>Coupon:</th>
+                <td><code>{{ order.coupon_code }}</code></td>
+            </tr>
+            {% endif %}
+        </table>
+    </div>
+</div>
+
+{% if order.delivery_payload %}
+<div class="row mt-3">
+    <div class="col-md-12">
+        <h3>Delivery Payload</h3>
+        <pre class="bg-secondary text-light p-3" style="white-space: pre-wrap; word-wrap: break-word;">{{ order.delivery_payload }}</pre>
+    </div>
+</div>
+{% endif %}
+
+<div class="mt-4">
+    <a class="btn btn-secondary" href="/orders">← Back to Orders</a>
+    {% if user %}
+    <a class="btn btn-primary" href="/users/{{ user.id }}">View User</a>
+    {% endif %}
+</div>
+{% endblock %}
+

@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<h1 class="mb-4"><i class="bi bi-speedometer2"></i> Dashboard</h1>
+<div class="row g-4">
+    <div class="col-md-3">
+        <div class="card border-primary">
+            <div class="card-body text-center">
+                <i class="bi bi-box-seam fs-1 text-primary mb-2"></i>
+                <h5 class="card-title text-muted">Sản phẩm</h5>
+                <p class="card-text fs-2 fw-bold text-primary">{{ products_cnt }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-success">
+            <div class="card-body text-center">
+                <i class="bi bi-people fs-1 text-success mb-2"></i>
+                <h5 class="card-title text-muted">Người dùng</h5>
+                <p class="card-text fs-2 fw-bold text-success">{{ users_cnt }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-info">
+            <div class="card-body text-center">
+                <i class="bi bi-cart-check fs-1 text-info mb-2"></i>
+                <h5 class="card-title text-muted">Đơn hàng</h5>
+                <p class="card-text fs-2 fw-bold text-info">{{ orders_cnt }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-warning">
+            <div class="card-body text-center">
+                <i class="bi bi-wallet2 fs-1 text-warning mb-2"></i>
+                <h5 class="card-title text-muted">Nạp tiền</h5>
+                <p class="card-text fs-2 fw-bold text-warning">{{ topups_cnt }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="mt-4">
+    <h5 class="mb-3"><i class="bi bi-ticket-perforated"></i> Tickets</h5>
+    <div class="d-flex gap-2 flex-wrap">
+        <span class="badge bg-warning text-dark fs-6 px-3 py-2">
+            <i class="bi bi-exclamation-circle"></i> OPEN: {{ open_tickets }}
+        </span>
+        <span class="badge bg-info text-dark fs-6 px-3 py-2">
+            <i class="bi bi-clock-history"></i> Cần xử lý: {{ error_open }}
+        </span>
+        <span class="badge bg-success text-dark fs-6 px-3 py-2">
+            <i class="bi bi-check-circle"></i> Đã xử lý: {{ error_done }}
+        </span>
+    </div>
+</div>
+<div class="mt-4 row g-4">
+    <div class="col-md-6">
+        <div class="card border-success">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="card-title text-muted mb-2">
+                            <i class="bi bi-currency-dollar"></i> Tổng doanh thu
+                        </h5>
+                        <p class="card-text fs-3 fw-bold text-success mb-0">{{ "%.2f"|format(total_revenue) }} USD</p>
+                    </div>
+                    <i class="bi bi-graph-up-arrow fs-1 text-success opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card border-primary">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="card-title text-muted mb-2">
+                            <i class="bi bi-calendar-day"></i> Doanh thu hôm nay
+                        </h5>
+                        <p class="card-text fs-3 fw-bold text-primary mb-0">{{ "%.2f"|format(today_revenue) }} USD</p>
+                    </div>
+                    <i class="bi bi-calendar-check fs-1 text-primary opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
